@@ -15,50 +15,36 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.lopho.jizzer.filetransfer;
+package org.lopho.jizzer.message;
 
-import java.io.File;
-
-import org.jivesoftware.smackx.filetransfer.IncomingFileTransfer;
+import org.jivesoftware.smack.Chat;
+import org.jivesoftware.smack.ChatManagerListener;
+import org.lopho.jizzer.util.JizzLogger;
 
 /**
  * @author lopho
  * @author b1gmct5
  */
-public class JizzTransfer {
-	private final File file;
-	private final IncomingFileTransfer transfer;
-	private final String peer;
+public class JizzChatManagerListener implements ChatManagerListener {
+	private JizzMessageListener jml;
+	private JizzLogger log;
 	
 	/**
-	 * @param peer
-	 * @param transfer
-	 * @param file
+	 * @param jml
+	 * @param log
 	 */
-	public JizzTransfer(String peer, IncomingFileTransfer transfer, File file) {
-		this.file = file;
-		this.transfer = transfer;
-		this.peer = peer;
+	public JizzChatManagerListener(JizzMessageListener jml, JizzLogger log) {
+		this.jml = jml;
+		this.log = log;
 	}
 	
-	/**
-	 * @return
+	/* (non-Javadoc)
+	 * @see org.jivesoftware.smack.ChatManagerListener#chatCreated(org.jivesoftware.smack.Chat, boolean)
 	 */
-	public File getFile() {
-		return file;
+	@Override
+	public void chatCreated(Chat chat, boolean createdLocally) {
+		log.add("[open][" + chat.getParticipant() + "]");
+		chat.addMessageListener(jml);
 	}
-	
-	/**
-	 * @return
-	 */
-	public IncomingFileTransfer getTransfer() {
-		return transfer;
-	}
-	
-	/**
-	 * @return
-	 */
-	public String getPeer() {
-		return peer;
-	}
+
 }

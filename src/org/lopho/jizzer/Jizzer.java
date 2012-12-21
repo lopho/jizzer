@@ -17,9 +17,6 @@
  */
 package org.lopho.jizzer;
 
-import java.util.ArrayList;
-
-import org.jivesoftware.smack.Chat;
 import org.jivesoftware.smack.Connection;
 import org.jivesoftware.smack.ConnectionConfiguration;
 import org.jivesoftware.smack.XMPPConnection;
@@ -28,8 +25,17 @@ import org.jivesoftware.smackx.filetransfer.FileTransferManager;
 import org.jivesoftware.smackx.muc.MultiUserChat;
 import org.lopho.jizzer.filetransfer.JizzFileTransferListener;
 import org.lopho.jizzer.filetransfer.JizzTransfer;
+import org.lopho.jizzer.message.JizzChatManagerListener;
+import org.lopho.jizzer.message.JizzCommand;
 import org.lopho.jizzer.message.JizzMessageListener;
+import org.lopho.jizzer.util.JizzConfig;
+import org.lopho.jizzer.util.JizzLogger;
 
+/**
+ * jizzer - a simple jabber bot for managing file transfers in multi user chats
+ * @author lopho
+ * @author b1gmct5
+ */
 public class Jizzer {
 	private JizzConfig conf;
 	private ConnectionConfiguration connConf;
@@ -39,71 +45,146 @@ public class Jizzer {
 	private JizzChatManagerListener cml;
 	private JizzFileTransferListener ftl;
 	private MultiUserChat muc;
+	private JizzLogger log;
 	private boolean run;
+	private boolean isPaused;
 	private int delta;
+	private final int defaultDelta;
 	
+	/**
+	 * @param jizzConfig
+	 */
 	public Jizzer(JizzConfig jizzConfig) {
+		log = new JizzLogger();
+		log.add("[system][start] starting");
 		conf = jizzConfig;
 		connConf = new ConnectionConfiguration(conf.getServer(), 5222);
 		conn = new XMPPConnection(connConf);
-
-		ftm = new FileTransferManager(conn);
-		ml = new JizzMessageListener();
-		cml = new JizzChatManagerListener(ml);
-		ftl = new JizzFileTransferListener(conf.getFolder());
-		ftm.addFileTransferListener(ftl);
-		
-		conn.getChatManager().addChatListener(cml);
-		
-		muc = new MultiUserChat(conn, conf.getMUC());
-		
+		ml = new JizzMessageListener(log);
+		cml = new JizzChatManagerListener(ml, log);
+		ftl = new JizzFileTransferListener(conf.getFolder(), log);		
 		run = true;
+		isPaused = false;
 		delta = 1000;
+		defaultDelta = delta;
 	}
 	
-	public void run() throws InterruptedException, XMPPException {
+	/**
+	 * @throws XMPPException
+	 */
+	private void init() throws XMPPException {
+		log.add("[system][start] connecting to " + conf.getServer());
 		conn.connect();
-		conn.login(conf.getUser(), conf.getPassword(), "jizzer");
-		muc.join(conf.getNick());
+		ftm = new FileTransferManager(conn);
+		ftm.addFileTransferListener(ftl);
+		conn.getChatManager().addChatListener(cml);
 		
+		log.add("[system][start] login as " + conf.getUser() + "@" + conf.getServer());
+		conn.login(conf.getUser(), conf.getPassword(), "jizzer");
+		muc = new MultiUserChat(conn, conf.getMUC());
+		log.add("[system][start] joining MUC " + conf.getMUC() + " as " + conf.getNick());
+		muc.join(conf.getNick());
+		log.add("[system] running...");
+	}
+	
+	/**
+	 * @throws InterruptedException
+	 * @throws XMPPException
+	 */
+	public void run() throws InterruptedException, XMPPException {
+		init();
 		while (run)
 		{
-			update(delta);
+			update();
 			Thread.sleep(delta);
 		}
 		
 		conn.disconnect();
 	}
 	
-	private void update(int delta) throws XMPPException {
+	/**
+	 * @throws XMPPException
+	 */
+	private void update() throws XMPPException {
 		for (JizzTransfer t : ftl.update()) {
-			System.out.println(t.getTransfer().getFileName());
-			Chat chat = conn.getChatManager().createChat(t.getPeer(), ml);
-			chat.sendMessage(conf.getUrl() + t.getTransfer().getFileName());
-		    muc.sendMessage(conf.getUrl() + t.getTransfer().getFileName());
+			String m = conf.getUrl() + t.getTransfer().getFileName();
+			conn.getChatManager().createChat(t.getPeer(), ml).sendMessage(m);
+			log.add("[sent][" + t.getPeer() + "] " + m);
+			m = t.getPeer().split("@")[0] + " sent file: " + conf.getUrl() + t.getTransfer().getFileName();
+		    muc.sendMessage(m);
+		    log.add("[sent][" + conf.getMUC() + "] " + m);
 		}
 		
-		if (ml.hasNext()) {
-			String command = ml.next();
-			if (command != null && command.equals("stop")) {
+		while (ml.hasNext()) {
+			JizzCommand jizzCommand = ml.next();
+			String command = jizzCommand.getCommand();
+			log.add("[command][" + jizzCommand.getPeer() + "][" + command + "]");
+			if (command.equals("stop")) {
 				stop();
-				System.out.println("recieved stop signal - shutting down");
+				break;
+			} else if (command.equals("resume") && isPaused) {
+				resume();
+			} else if (!isPaused) {
+				if (command.equals("pause")) {
+					pause();
+				} else if (command.equals("ping")) {
+					jizzCommand.getChat().sendMessage("**pong**");
+					log.add("[sent][" + jizzCommand.getPeer() + "] **pong**");
+				}
 			}
 		}
 	}
-	
+		
+	/**
+	 * @return config
+	 */
 	public JizzConfig getConfig() {
 		return conf.clone();
 	}
 	
+	/**
+	 * 
+	 */
 	public void stop() {
+		setDelta(0);
 		this.run = false;
+		log.add("[system] recieved stop signal - shutting down");
 	}
 	
+	/**
+	 * @param immediatly
+	 */
 	public void stop(boolean immediatly) {
-		this.run = false;
+		stop();
 		if (immediatly) {
 			conn.disconnect();
 		}
+	}
+	
+	/**
+	 * @param delta
+	 */
+	public void setDelta(int delta) {
+		this.delta = delta;
+	}
+	
+	/**
+	 * 
+	 */
+	public void pause() {
+		setDelta(10000);
+		ftl.deny();
+		isPaused = true;
+		log.add("[system] recieved pause signal - pausing");
+	}
+	
+	/**
+	 * 
+	 */
+	public void resume() {
+		setDelta(defaultDelta);
+		ftl.allow();
+		isPaused = false;
+		log.add("[system] recieved resume signal - resuming");
 	}
 }

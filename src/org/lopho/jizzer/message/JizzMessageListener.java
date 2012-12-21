@@ -23,35 +23,55 @@ import java.util.HashMap;
 import org.jivesoftware.smack.Chat;
 import org.jivesoftware.smack.MessageListener;
 import org.jivesoftware.smack.packet.Message;
+import org.lopho.jizzer.util.JizzLogger;
 
+/**
+ * @author lopho
+ * @author b1gmct5
+ */
 public class JizzMessageListener implements MessageListener {
-	private ArrayList<String> commandQueue;
+	private ArrayList<JizzCommand> commandQueue;
+	private JizzLogger log;
 	static private final HashMap<String, String> COMMANDS =
 			new HashMap<String, String>();
 	
 	static {
 		COMMANDS.put("stop", "");
-		COMMANDS.put("echo", "");
+		COMMANDS.put("ping", "");
+		COMMANDS.put("pause", "");
+		COMMANDS.put("resume", "");
 	}
 	
-	public JizzMessageListener() {
-		commandQueue = new ArrayList<String>();
+	/**
+	 * @param log
+	 */
+	public JizzMessageListener(JizzLogger log) {
+		this.log = log;
+		commandQueue = new ArrayList<JizzCommand>();
 	}
 	
+	/* (non-Javadoc)
+	 * @see org.jivesoftware.smack.MessageListener#processMessage(org.jivesoftware.smack.Chat, org.jivesoftware.smack.packet.Message)
+	 */
 	@Override
 	public void processMessage(Chat chat, Message message) {
-		String body = message.getBody();
+		String body = message.getBody().toLowerCase();
+		String peer = chat.getParticipant();
 		if (body != null) {
-			System.out.println(body);
+			log.add("[recieved]["+ peer + "] " + body);
 		}
-		if (body.toLowerCase().startsWith("**jizzer*")) {
-			String command = body.substring(9).toLowerCase();
-			if ( COMMANDS.containsKey(command)) {
-				commandQueue.add(body.substring(9));
+		if (body.startsWith("**jizzer*")) {
+			String command = body.substring(9);
+			if (COMMANDS.containsKey(command)) {
+				commandQueue.add(
+						new JizzCommand(command, peer, chat));
 			}
 		}
 	}
 	
+	/**
+	 * @return
+	 */
 	public boolean hasNext() {
 		if (commandQueue.isEmpty()) {
 			return false;
@@ -60,8 +80,11 @@ public class JizzMessageListener implements MessageListener {
 		}
 	}
 	
-	public String next() {
-		String command = commandQueue.get(0);
+	/**
+	 * @return
+	 */
+	public JizzCommand next() {
+		JizzCommand command = commandQueue.get(0);
 		commandQueue.remove(0);
 		return command;
 	}

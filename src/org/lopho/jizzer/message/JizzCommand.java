@@ -15,23 +15,48 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.lopho.jizzer;
+package org.lopho.jizzer.message;
 
 import org.jivesoftware.smack.Chat;
-import org.jivesoftware.smack.ChatManagerListener;
-import org.lopho.jizzer.message.JizzMessageListener;
 
-public class JizzChatManagerListener implements ChatManagerListener {
-	private JizzMessageListener jml;
+/**
+ * @author lopho
+ * @author b1gmct5
+ */
+public class JizzCommand {
+	private final String command;
+	private final String peer;
+	private final Chat chat;
 	
-	public JizzChatManagerListener(JizzMessageListener jml) {
-		this.jml = jml;
+	/**
+	 * @param command
+	 * @param peer
+	 * @param chat
+	 */
+	public JizzCommand(String command, String peer, Chat chat) {
+		this.command = command;
+		this.peer = peer;
+		this.chat = chat;
 	}
 	
-	@Override
-	public void chatCreated(Chat chat, boolean createdLocally) {
-		System.out.println(chat.getParticipant());
-		chat.addMessageListener(jml);
+	/**
+	 * @return
+	 */
+	public String getCommand() {
+		return command;
 	}
-
+	
+	/**
+	 * @return
+	 */
+	public String getPeer() {
+		return peer;
+	}
+	
+	/**
+	 * @return
+	 */
+	public Chat getChat() {
+		return chat;
+	}
 }

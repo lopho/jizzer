@@ -24,30 +24,53 @@ import org.jivesoftware.smack.XMPPException;
 import org.jivesoftware.smackx.filetransfer.FileTransferListener;
 import org.jivesoftware.smackx.filetransfer.FileTransferRequest;
 import org.jivesoftware.smackx.filetransfer.IncomingFileTransfer;
+import org.lopho.jizzer.util.JizzLogger;
 
+/**
+ * @author lopho
+ * @author b1gmct5
+ */
 public class JizzFileTransferListener implements FileTransferListener {
 	private ArrayList<JizzTransfer> transfers;
 	private String folder;
+	private boolean accept;
+	private JizzLogger log;
 	
-	public JizzFileTransferListener(String folder) {
+	/**
+	 * @param folder
+	 * @param log
+	 */
+	public JizzFileTransferListener(String folder, JizzLogger log) {
 		this.folder = folder;
+		this.log = log;
 		transfers = new ArrayList<JizzTransfer>();
+		accept = true;
 	}
 
+	/* (non-Javadoc)
+	 * @see org.jivesoftware.smackx.filetransfer.FileTransferListener#fileTransferRequest(org.jivesoftware.smackx.filetransfer.FileTransferRequest)
+	 */
 	@Override
 	public void fileTransferRequest(FileTransferRequest request) {
-		IncomingFileTransfer t = request.accept();
-		File f = new File(folder + System.getProperty("file.separator") + t.getFileName());
-		String p = request.getRequestor();
-		try {
-			t.recieveFile(f);
-		} catch (XMPPException e) {
-			e.printStackTrace();
+		if (accept) {
+			IncomingFileTransfer t = request.accept();
+			File f = new File(folder + System.getProperty("file.separator") + t.getFileName());
+			String p = request.getRequestor();
+			log.add("[upload request][" + p + "] " + t.getFileName());
+			try {
+				t.recieveFile(f);
+			} catch (XMPPException e) {
+				log.add("[Error]");
+				e.printStackTrace();
+			}
+			JizzTransfer transfer = new JizzTransfer(p, t, f);
+			transfers.add(transfer);
 		}
-		JizzTransfer transfer = new JizzTransfer(p, t, f);
-		transfers.add(transfer);
 	}
 	
+	/**
+	 * @return
+	 */
 	public ArrayList<JizzTransfer> update() {
 		ArrayList<JizzTransfer> ret = new ArrayList<JizzTransfer>();
 		ArrayList<JizzTransfer> rem = new ArrayList<JizzTransfer>();
@@ -59,8 +82,24 @@ public class JizzFileTransferListener implements FileTransferListener {
 		}
 		for (JizzTransfer t : rem) {
 			transfers.remove(t);
+			log.add("[upload done][" + t.getPeer() + "] "
+						+ t.getTransfer().getFileName());
 		}
 		return ret;
+	}
+	
+	/**
+	 * 
+	 */
+	public void deny() {
+		accept = false;
+	}
+	
+	/**
+	 * 
+	 */
+	public void allow() {
+		accept = true;
 	}
 
 }

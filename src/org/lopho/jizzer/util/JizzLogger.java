@@ -15,50 +15,44 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.lopho.jizzer.filetransfer;
+package org.lopho.jizzer.util;
 
-import java.io.File;
-
-import org.jivesoftware.smackx.filetransfer.IncomingFileTransfer;
+import java.io.PrintStream;
+import java.sql.Timestamp;
+import java.util.Date;
 
 /**
  * @author lopho
  * @author b1gmct5
  */
-public class JizzTransfer {
-	private final File file;
-	private final IncomingFileTransfer transfer;
-	private final String peer;
+public class JizzLogger {
+	private final PrintStream o;
 	
 	/**
-	 * @param peer
-	 * @param transfer
-	 * @param file
+	 * 
 	 */
-	public JizzTransfer(String peer, IncomingFileTransfer transfer, File file) {
-		this.file = file;
-		this.transfer = transfer;
-		this.peer = peer;
+	public JizzLogger() {
+		o = System.out;
+	}
+	
+	/**
+	 * @param ostream
+	 */
+	public JizzLogger(PrintStream ostream) {
+		o = ostream;
+	}
+	
+	/**
+	 * @param message
+	 */
+	public void add(String message) {
+		o.println(getTimestamp() + " " + message);
 	}
 	
 	/**
 	 * @return
 	 */
-	public File getFile() {
-		return file;
-	}
-	
-	/**
-	 * @return
-	 */
-	public IncomingFileTransfer getTransfer() {
-		return transfer;
-	}
-	
-	/**
-	 * @return
-	 */
-	public String getPeer() {
-		return peer;
+	public String getTimestamp() {
+		return "["+(new Timestamp((new Date()).getTime())).toString().substring(0, 19)+"]";
 	}
 }

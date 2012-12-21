@@ -15,50 +15,8 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.lopho.jizzer.filetransfer;
-
-import java.io.File;
-
-import org.jivesoftware.smackx.filetransfer.IncomingFileTransfer;
-
 /**
  * @author lopho
  * @author b1gmct5
  */
-public class JizzTransfer {
-	private final File file;
-	private final IncomingFileTransfer transfer;
-	private final String peer;
-	
-	/**
-	 * @param peer
-	 * @param transfer
-	 * @param file
-	 */
-	public JizzTransfer(String peer, IncomingFileTransfer transfer, File file) {
-		this.file = file;
-		this.transfer = transfer;
-		this.peer = peer;
-	}
-	
-	/**
-	 * @return
-	 */
-	public File getFile() {
-		return file;
-	}
-	
-	/**
-	 * @return
-	 */
-	public IncomingFileTransfer getTransfer() {
-		return transfer;
-	}
-	
-	/**
-	 * @return
-	 */
-	public String getPeer() {
-		return peer;
-	}
-}
+package org.lopho.jizzer.util;
