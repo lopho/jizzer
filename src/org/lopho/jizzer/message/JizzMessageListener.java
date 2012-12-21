@@ -25,7 +25,7 @@ import org.jivesoftware.smack.MessageListener;
 import org.jivesoftware.smack.packet.Message;
 
 public class JizzMessageListener implements MessageListener {
-	private ArrayList<String> commandList;
+	private ArrayList<String> commandQueue;
 	static private final HashMap<String, String> COMMANDS =
 			new HashMap<String, String>();
 	
@@ -35,7 +35,7 @@ public class JizzMessageListener implements MessageListener {
 	}
 	
 	public JizzMessageListener() {
-		commandList = new ArrayList<String>();
+		commandQueue = new ArrayList<String>();
 	}
 	
 	@Override
@@ -47,13 +47,13 @@ public class JizzMessageListener implements MessageListener {
 		if (body.toLowerCase().startsWith("**jizzer*")) {
 			String command = body.substring(9).toLowerCase();
 			if ( COMMANDS.containsKey(command)) {
-				commandList.add(body.substring(9));
+				commandQueue.add(body.substring(9));
 			}
 		}
 	}
 	
 	public boolean hasNext() {
-		if (commandList.isEmpty()) {
+		if (commandQueue.isEmpty()) {
 			return false;
 		} else {
 			return true;
@@ -61,8 +61,8 @@ public class JizzMessageListener implements MessageListener {
 	}
 	
 	public String next() {
-		String command = commandList.get(0);
-		commandList.remove(0);
+		String command = commandQueue.get(0);
+		commandQueue.remove(0);
 		return command;
 	}
 }

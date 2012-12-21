@@ -32,15 +32,19 @@ public class Main {
 	 * @param args
 	 */
 	public static void main(String[] args) {
+		Jizzer jizzer = new Jizzer(new JizzConfig(args));
 		try {
-			(new Jizzer(new JizzConfig(args))).run();
+			jizzer.run();
 		} catch (XMPPException e) {
+			jizzer.stop(true);
 			e.printStackTrace();
 			System.exit(1);
 		} catch (InterruptedException e) {
+			jizzer.stop(true);
 			e.printStackTrace();
 			System.exit(1);
 		} catch (InvalidParameterException e) {
+			jizzer.stop(true);
 			System.out.println(e.getMessage());
 			System.exit(0);
 		}

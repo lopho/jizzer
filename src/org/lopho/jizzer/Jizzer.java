@@ -42,13 +42,11 @@ public class Jizzer {
 	private boolean run;
 	private int delta;
 	
-	public Jizzer(JizzConfig jizzConfig) throws XMPPException {
+	public Jizzer(JizzConfig jizzConfig) {
 		conf = jizzConfig;
 		connConf = new ConnectionConfiguration(conf.getServer(), 5222);
 		conn = new XMPPConnection(connConf);
-		
-		conn.connect();
-		
+
 		ftm = new FileTransferManager(conn);
 		ml = new JizzMessageListener();
 		cml = new JizzChatManagerListener(ml);
@@ -56,47 +54,56 @@ public class Jizzer {
 		ftm.addFileTransferListener(ftl);
 		
 		conn.getChatManager().addChatListener(cml);
-		conn.login(conf.getUser(), conf.getPassword(), "jizzer");
 		
-		muc = new MultiUserChat(conn, conf.getDestMUC());
+		muc = new MultiUserChat(conn, conf.getMUC());
 		
 		run = true;
 		delta = 1000;
 	}
 	
 	public void run() throws InterruptedException, XMPPException {
+		conn.connect();
+		conn.login(conf.getUser(), conf.getPassword(), "jizzer");
+		muc.join(conf.getNick());
+		
 		while (run)
 		{
 			update(delta);
+			Thread.sleep(delta);
 		}
+		
 		conn.disconnect();
 	}
 	
-	private void update(int delta) throws InterruptedException, XMPPException {
-		ArrayList<JizzTransfer> transfers = ftl.update();
-		if (!transfers.isEmpty()) {
-			for (JizzTransfer t : transfers) {
-				System.out.println(t.getTransfer().getFileName());
-				Chat chat = conn.getChatManager().createChat(t.getPeer(), ml);
-				chat.sendMessage(conf.getUrl() + t.getTransfer().getFileName());
-
-			    muc.join("jizzer");
-			    muc.sendMessage(conf.getUrl() + t.getTransfer().getFileName());
-			    muc.leave();
-			}
+	private void update(int delta) throws XMPPException {
+		for (JizzTransfer t : ftl.update()) {
+			System.out.println(t.getTransfer().getFileName());
+			Chat chat = conn.getChatManager().createChat(t.getPeer(), ml);
+			chat.sendMessage(conf.getUrl() + t.getTransfer().getFileName());
+		    muc.sendMessage(conf.getUrl() + t.getTransfer().getFileName());
 		}
 		
 		if (ml.hasNext()) {
 			String command = ml.next();
 			if (command != null && command.equals("stop")) {
-				run = false;
+				stop();
 				System.out.println("recieved stop signal - shutting down");
 			}
 		}
-		Thread.sleep(delta);
 	}
 	
 	public JizzConfig getConfig() {
 		return conf.clone();
+	}
+	
+	public void stop() {
+		this.run = false;
+	}
+	
+	public void stop(boolean immediatly) {
+		this.run = false;
+		if (immediatly) {
+			conn.disconnect();
+		}
 	}
 }

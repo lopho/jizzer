@@ -50,14 +50,14 @@ public class JizzFileTransferListener implements FileTransferListener {
 	
 	public ArrayList<JizzTransfer> update() {
 		ArrayList<JizzTransfer> ret = new ArrayList<JizzTransfer>();
-		ArrayList<JizzTransfer> id = new ArrayList<JizzTransfer>();
-		for(JizzTransfer t : transfers) {
-			if(t.getTransfer().isDone()) {
+		ArrayList<JizzTransfer> rem = new ArrayList<JizzTransfer>();
+		for (JizzTransfer t : transfers) {
+			if (t.getTransfer().isDone()) {
 				ret.add(t);
-				id.add(t);
+				rem.add(t);
 			}
 		}
-		for(JizzTransfer t : id) {
+		for (JizzTransfer t : rem) {
 			transfers.remove(t);
 		}
 		return ret;
