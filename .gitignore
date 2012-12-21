@@ -1,5 +1,8 @@
 /.project
 /.classpath
 /.settings
+/.settings/*
 /bin
+/bin/*
 /upload
+/upload/*

@@ -15,11 +15,15 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.lopho.jizzer;
+package org.lopho.jizzer.util;
 
 import java.security.InvalidParameterException;
 
-public class JizzConfig {
+/**
+ * @author lopho
+ * @author b1gmct5
+ */
+public class JizzConfig implements Cloneable {
 	private String user;
 	private String server;
 	private String password;
@@ -28,6 +32,10 @@ public class JizzConfig {
 	private String url;
 	private String nick;
 	
+	/**
+	 * @param args
+	 * @throws InvalidParameterException
+	 */
 	public JizzConfig(String[] args) throws InvalidParameterException {
 		user = null;
 		server = null;
@@ -69,6 +77,9 @@ public class JizzConfig {
 		}
 	}
 	
+	/**
+	 * @param jizzConfig
+	 */
 	private JizzConfig(JizzConfig jizzConfig) {
 		user = jizzConfig.user;
 		server = jizzConfig.server;
@@ -78,16 +89,41 @@ public class JizzConfig {
 		url = jizzConfig.url;
 	}
 	
+	/* (non-Javadoc)
+	 * @see java.lang.Object#clone()
+	 */
+	@Override
 	public JizzConfig clone() {
 		return new JizzConfig(this);
 	}
 	
+	/**
+	 * @return
+	 */
 	public String getUser() { return user; }
+	/**
+	 * @return
+	 */
 	public String getServer() { return server; }
+	/**
+	 * @return
+	 */
 	public String getPassword() { return password; }
+	/**
+	 * @return
+	 */
 	public String getMUC() { return muc; }
+	/**
+	 * @return
+	 */
 	public String getFolder() { return folder; }
+	/**
+	 * @return
+	 */
 	public String getUrl() { return url; }
+	/**
+	 * @return
+	 */
 	public String getNick() { return nick; }
 		
 }

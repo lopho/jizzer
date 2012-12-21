@@ -20,9 +20,10 @@ package org.lopho.jizzer;
 import java.security.InvalidParameterException;
 
 import org.jivesoftware.smack.XMPPException;
+import org.lopho.jizzer.util.JizzConfig;
 
 /**
- * Jizzer
+ * jizzer - a simple jabber bot for managing file transfers in multi user chats
  * @author lopho
  * @author b1gmct5
  */
@@ -32,21 +33,28 @@ public class Main {
 	 * @param args
 	 */
 	public static void main(String[] args) {
-		Jizzer jizzer = new Jizzer(new JizzConfig(args));
+		JizzConfig jizzConfig = null;
 		try {
-			jizzer.run();
-		} catch (XMPPException e) {
-			jizzer.stop(true);
-			e.printStackTrace();
-			System.exit(1);
-		} catch (InterruptedException e) {
-			jizzer.stop(true);
-			e.printStackTrace();
-			System.exit(1);
+			jizzConfig = new JizzConfig(args);
 		} catch (InvalidParameterException e) {
-			jizzer.stop(true);
 			System.out.println(e.getMessage());
 			System.exit(0);
+		}
+		
+		if (jizzConfig != null) {
+			Jizzer jizzer = new Jizzer(jizzConfig);
+			
+			try {
+				jizzer.run();
+			} catch (XMPPException e) {
+				jizzer.stop(true);
+				e.printStackTrace();
+				System.exit(1);
+			} catch (InterruptedException e) {
+				jizzer.stop(true);
+				e.printStackTrace();
+				System.exit(1);
+			}
 		}
 	}
 
