@@ -118,6 +118,7 @@ public class Jizzer {
 		while (ml.hasNext()) {
 			JizzCommand jizzCommand = ml.next();
 			String command = jizzCommand.getCommand();
+			String[] options = jizzCommand.getOptions();
 			log.add("[command][" + jizzCommand.getPeer() + "][" + command + "]");
 			if (command.equals("stop")) {
 				stop();
@@ -130,6 +131,10 @@ public class Jizzer {
 				} else if (command.equals("ping")) {
 					jizzCommand.getChat().sendMessage("**pong**");
 					log.add("[sent][" + jizzCommand.getPeer() + "] **pong**");
+				} else if (command.equals("next")) {
+					if (options.length > 0) {
+						System.out.println("Next file from " +jizzCommand.getPeer()+"goes to " + options[0]);
+					}
 				}
 			}
 		}

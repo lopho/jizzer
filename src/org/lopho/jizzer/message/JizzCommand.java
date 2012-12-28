@@ -25,6 +25,7 @@ import org.jivesoftware.smack.Chat;
  */
 public class JizzCommand {
 	private final String command;
+	private final String[] options;
 	private final String peer;
 	private final Chat chat;
 	
@@ -33,12 +34,17 @@ public class JizzCommand {
 	 * @param peer
 	 * @param chat
 	 */
-	public JizzCommand(String command, String peer, Chat chat) {
+	public JizzCommand(String command, String[] options, String peer, Chat chat) {
 		this.command = command;
+		this.options = options;
 		this.peer = peer;
 		this.chat = chat;
 	}
 	
+	public String[] getOptions() {
+		return options;
+	}
+
 	/**
 	 * @return
 	 */

@@ -19,6 +19,7 @@ package org.lopho.jizzer.message;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.StringTokenizer;
 
 import org.jivesoftware.smack.Chat;
 import org.jivesoftware.smack.MessageListener;
@@ -40,6 +41,7 @@ public class JizzMessageListener implements MessageListener {
 		COMMANDS.put("ping", "");
 		COMMANDS.put("pause", "");
 		COMMANDS.put("resume", "");
+		COMMANDS.put("next", "");
 	}
 	
 	/**
@@ -61,10 +63,18 @@ public class JizzMessageListener implements MessageListener {
 			log.add("[recieved]["+ peer + "] " + body);
 		}
 		if (body.startsWith("**jizzer*")) {
-			String command = body.substring(9);
+			StringTokenizer commandline = new StringTokenizer(body.substring(9),"*");
+			String command = commandline.nextToken();
+			String[] options = null;
+			if (commandline.countTokens()>1) {
+				options = new String[commandline.countTokens()];
+				for (int i = 0;commandline.hasMoreTokens();i++) {
+			        options[i] = commandline.nextToken();
+			    }
+			}
 			if (COMMANDS.containsKey(command)) {
 				commandQueue.add(
-						new JizzCommand(command, peer, chat));
+						new JizzCommand(command, options, peer, chat));
 			}
 		}
 	}
