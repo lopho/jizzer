@@ -66,7 +66,7 @@ public class JizzMessageListener implements MessageListener {
 			StringTokenizer commandline = new StringTokenizer(body.substring(9),"*");
 			String command = commandline.nextToken();
 			String[] options = null;
-			if (commandline.countTokens()>1) {
+			if (commandline.hasMoreTokens()) {
 				options = new String[commandline.countTokens()];
 				for (int i = 0;commandline.hasMoreTokens();i++) {
 			        options[i] = commandline.nextToken();

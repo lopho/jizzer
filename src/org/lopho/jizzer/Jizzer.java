@@ -17,6 +17,8 @@
  */
 package org.lopho.jizzer;
 
+import java.util.HashMap;
+
 import org.jivesoftware.smack.Connection;
 import org.jivesoftware.smack.ConnectionConfiguration;
 import org.jivesoftware.smack.XMPPConnection;
@@ -45,6 +47,7 @@ public class Jizzer {
 	private JizzChatManagerListener cml;
 	private JizzFileTransferListener ftl;
 	private MultiUserChat muc;
+	private HashMap<String, String> dft; //Discrete File Transfers
 	private JizzLogger log;
 	private boolean run;
 	private boolean isPaused;
@@ -67,6 +70,7 @@ public class Jizzer {
 		isPaused = false;
 		delta = 1000;
 		defaultDelta = delta;
+		dft = new HashMap<String, String>();
 	}
 	
 	/**
@@ -111,7 +115,11 @@ public class Jizzer {
 			conn.getChatManager().createChat(t.getPeer(), ml).sendMessage(m);
 			log.add("[sent][" + t.getPeer() + "] " + m);
 			m = t.getPeer().split("@")[0] + " sent file: " + conf.getUrl() + t.getTransfer().getFileName();
-		    muc.sendMessage(m);
+		    if (dft.containsKey(t.getPeer())) {
+		    	conn.getChatManager().createChat(dft.get(t.getPeer()), ml).sendMessage(m);
+		    } else {
+		    	muc.sendMessage(m);	
+		    }
 		    log.add("[sent][" + conf.getMUC() + "] " + m);
 		}
 		
@@ -132,8 +140,9 @@ public class Jizzer {
 					jizzCommand.getChat().sendMessage("**pong**");
 					log.add("[sent][" + jizzCommand.getPeer() + "] **pong**");
 				} else if (command.equals("next")) {
-					if (options.length > 0) {
-						System.out.println("Next file from " +jizzCommand.getPeer()+"goes to " + options[0]);
+					if (options != null) {
+						log.add("[next]["+jizzCommand.getPeer()+"] Next-Request to: " + options[0]);
+						dft.put(jizzCommand.getPeer(), options[0]);
 					}
 				}
 			}
