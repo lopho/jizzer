@@ -129,7 +129,7 @@ public class Jizzer {
 			JizzCommand jizzCommand = ml.next();
 			String command = jizzCommand.getCommand();
 			String[] options = jizzCommand.getOptions();
-			Boolean admin = conn.getRoster().getGroup("Jizzer").contains(jizzCommand.getPeer());
+			boolean admin = conn.getRoster().getGroup("Jizzer").contains(jizzCommand.getPeer());
 			log.add("[command][" + jizzCommand.getPeer() + "][Admin: " + admin + "][" + command + "]");
 			if (command.equals("stop") && admin) {
 				stop();
