@@ -17,10 +17,13 @@
  */
 package org.lopho.jizzer;
 
+import java.util.Collection;
 import java.util.HashMap;
 
 import org.jivesoftware.smack.Connection;
 import org.jivesoftware.smack.ConnectionConfiguration;
+import org.jivesoftware.smack.Roster;
+import org.jivesoftware.smack.RosterEntry;
 import org.jivesoftware.smack.XMPPConnection;
 import org.jivesoftware.smack.XMPPException;
 import org.jivesoftware.smackx.filetransfer.FileTransferManager;
@@ -85,10 +88,12 @@ public class Jizzer {
 		
 		log.add("[system][start] login as " + conf.getUser() + "@" + conf.getServer());
 		conn.login(conf.getUser(), conf.getPassword(), "jizzer");
+		
 		muc = new MultiUserChat(conn, conf.getMUC());
 		log.add("[system][start] joining MUC " + conf.getMUC() + " as " + conf.getNick());
 		muc.join(conf.getNick());
 		log.add("[system] running...");
+		
 	}
 	
 	/**
@@ -127,14 +132,15 @@ public class Jizzer {
 			JizzCommand jizzCommand = ml.next();
 			String command = jizzCommand.getCommand();
 			String[] options = jizzCommand.getOptions();
-			log.add("[command][" + jizzCommand.getPeer() + "][" + command + "]");
-			if (command.equals("stop")) {
+			Boolean admin = conn.getRoster().getGroup("Jizzer").contains(jizzCommand.getPeer());
+			log.add("[command][" + jizzCommand.getPeer() + "][Admin: " + admin + "][" + command + "]");
+			if (command.equals("stop") && admin) {
 				stop();
 				break;
-			} else if (command.equals("resume") && isPaused) {
+			} else if (command.equals("resume") && isPaused && admin) {
 				resume();
 			} else if (!isPaused) {
-				if (command.equals("pause")) {
+				if (command.equals("pause") && admin) {
 					pause();
 				} else if (command.equals("ping")) {
 					jizzCommand.getChat().sendMessage("**pong**");
